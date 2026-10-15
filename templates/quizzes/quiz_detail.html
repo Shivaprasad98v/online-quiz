@@ -1,0 +1,84 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ quiz.title }} | QuizMaster{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/quiz_pages.css' %}">
+
+<div class="quiz-page">
+    <section class="quiz-intro">
+        <div class="quiz-banner">
+            <div class="quiz-icon">Q</div>
+            <span class="quiz-tag">EXAMINATION</span>
+            <h1>{{ quiz.title }}</h1>
+            <p>
+                {{ quiz.description|default:"Test your knowledge and discover how much you have learned." }}
+            </p>
+        </div>
+
+        <div class="quiz-body">
+            <div class="quiz-stats">
+                <div class="stat-card">
+                    <span class="stat-icon">◷</span>
+                    <span class="stat-label">DURATION</span>
+                    <strong>{{ quiz.duration_minutes }} min</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-icon">☷</span>
+                    <span class="stat-label">QUESTIONS</span>
+                    <strong>{{ quiz.questions.count }}</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-icon">★</span>
+                    <span class="stat-label">TOTAL MARKS</span>
+                    <strong>{{ quiz.total_marks }}</strong>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h2>Before you begin</h2>
+
+                <div class="instruction-item">
+                    <span class="instruction-check">✓</span>
+                    <p>The timer starts when you begin the examination.</p>
+                </div>
+
+                <div class="instruction-item">
+                    <span class="instruction-check">✓</span>
+                    <p>Read each question carefully before selecting an answer.</p>
+                </div>
+
+                <div class="instruction-item">
+                    <span class="instruction-check">✓</span>
+                    <p>Submit your answers before the timer reaches zero.</p>
+                </div>
+
+                <div class="instruction-item">
+                    <span class="instruction-check">✓</span>
+                    <p>Review your answers before submitting your examination.</p>
+                </div>
+            </div>
+
+            <div class="quiz-actions">
+                <a href="{% url 'quiz_list' %}" class="quiz-back">
+                    ← Back to Quizzes
+                </a>
+
+                <a href="{% url 'take_quiz' quiz.id %}" class="quiz-start">
+                    Start Examination
+                    <span>→</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <p class="quiz-note">
+        <span>🔒</span>
+        Your examination progress is associated with your account.
+    </p>
+</div>
+{% endblock %}

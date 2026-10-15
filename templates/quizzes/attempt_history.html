@@ -1,0 +1,161 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Results | QuizMaster{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/quiz_pages.css' %}">
+
+<div class="history-page">
+
+    <header class="history-header">
+        <div>
+            <span class="result-eyebrow">YOUR LEARNING JOURNEY</span>
+            <h1>My Attempt History</h1>
+            <p>Track your examination results, review your scores, and keep improving.</p>
+        </div>
+
+        <a href="{% url 'quiz_list' %}" class="history-primary-button">
+            Explore Quizzes →
+        </a>
+    </header>
+
+    <section class="history-stats">
+        <div class="history-stat-card">
+            <span class="history-stat-icon">☷</span>
+            <div>
+                <span>Total Attempts</span>
+                <strong>{{ attempts|length }}</strong>
+            </div>
+        </div>
+
+        <div class="history-stat-card">
+            <span class="history-stat-icon">🏆</span>
+            <div>
+                <span>Average Score</span>
+                <strong>
+                    {% if attempts %}
+                        {% widthratio attempts|length 1 1 as attempt_count %}
+                        {% with total_percentage=0 %}
+                            {% for attempt in attempts %}
+                                {% widthratio attempt.percentage 1 1 as current_percentage %}
+                                {% if forloop.first %}
+                                    {{ attempt.percentage|floatformat:1 }}%
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    {% else %}
+                        0%
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
+
+        <div class="history-stat-card">
+            <span class="history-stat-icon">✓</span>
+            <div>
+                <span>Latest Activity</span>
+                <strong class="history-latest">
+                    {% if attempts %}
+                        {{ attempts.0.submitted_at|date:"d M Y" }}
+                    {% else %}
+                        No attempts yet
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="history-panel">
+        <div class="history-panel-heading">
+            <div>
+                <h2>Examination Records</h2>
+                <p>Your submitted quizzes and scores.</p>
+            </div>
+
+            <span class="history-record-count">
+                {{ attempts|length }} record{{ attempts|length|pluralize }}
+            </span>
+        </div>
+
+        {% if attempts %}
+            <div class="history-table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>EXAMINATION</th>
+                            <th>SCORE</th>
+                            <th>PERCENTAGE</th>
+                            <th>SUBMITTED</th>
+                            <th>RESULT</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for attempt in attempts %}
+                        <tr>
+                            <td>
+                                <div class="history-quiz-cell">
+                                    <span class="history-quiz-icon">Q</span>
+                                    <div>
+                                        <strong>{{ attempt.quiz.title }}</strong>
+                                        <small>Quiz attempt #{{ attempt.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <strong class="history-score">
+                                    {{ attempt.score }}
+                                    <span>/ {{ attempt.total_marks }}</span>
+                                </strong>
+                            </td>
+
+                            <td>
+                                <div class="history-percentage">
+                                    <strong>{{ attempt.percentage|floatformat:1 }}%</strong>
+                                    <div class="mini-progress">
+                                        <span style="width: {{ attempt.percentage }}%"></span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="history-date">
+                                    {{ attempt.submitted_at|date:"d M Y" }}
+                                </span>
+                                <small class="history-time">
+                                    {{ attempt.submitted_at|date:"h:i A" }}
+                                </small>
+                            </td>
+
+                            <td>
+                                <a href="{% url 'result' attempt.id %}"
+                                   class="history-view-button">
+                                    View Result →
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="history-empty">
+                <div class="history-empty-icon">Q</div>
+                <h3>No examination history yet</h3>
+                <p>Once you complete a quiz, your marks and results will appear here.</p>
+                <a href="{% url 'quiz_list' %}" class="history-primary-button">
+                    Take Your First Quiz →
+                </a>
+            </div>
+        {% endif %}
+    </section>
+
+    <p class="history-footer-note">
+        Keep practising. Every completed quiz is another step forward.
+    </p>
+
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Student Account | QuizMaster{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+
+    <div class="auth-form-card">
+        <div class="role-icon">🎓</div>
+
+        <span class="eyebrow">JOIN QUIZMASTER</span>
+        <h2>Create your account.</h2>
+        <p>Join QuizMaster to take quizzes, track your scores, and improve your skills.</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="auth-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <p>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+
+                    {% if field.help_text %}
+                        <small>{{ field.help_text|safe }}</small>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <span class="auth-errors">{{ error }}</span>
+                    {% endfor %}
+                </p>
+            {% endfor %}
+
+            <button type="submit" class="auth-submit">
+                Create student account →
+            </button>
+        </form>
+
+        <p>
+            Already registered?
+            <a href="{% url 'student_login' %}">Student login</a>
+        </p>
+
+        <p>
+            <a href="{% url 'portal' %}">← Back to login choices</a>
+        </p>
+    </div>
+
+</section>
+{% endblock %}

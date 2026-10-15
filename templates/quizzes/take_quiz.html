@@ -1,0 +1,216 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Take {{ quiz.title }} | QuizMaster{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/quiz_pages.css' %}">
+
+<div class="exam-page">
+    <div class="exam-header">
+        <div>
+            <span class="exam-eyebrow">QUIZMASTER EXAMINATION</span>
+            <h1>{{ quiz.title }}</h1>
+            <p>{{ quiz.description|default:"Choose the best answer for every question." }}</p>
+        </div>
+
+        <div class="exam-timer" id="timerBox">
+            <span>TIME REMAINING</span>
+            <strong id="timer">--:--</strong>
+        </div>
+    </div>
+
+    <div class="exam-progress">
+        <div class="progress-label">
+            <span>Examination progress</span>
+            <strong id="progressText">0 of {{ questions|length }} answered</strong>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    {% if questions %}
+    <form method="post" id="examForm">
+        {% csrf_token %}
+
+        <div class="exam-layout">
+            <main class="question-list">
+                {% for question in questions %}
+                <section class="question-card" id="question-{{ question.id }}">
+                    <div class="question-heading">
+                        <span class="question-number">
+                            QUESTION {{ forloop.counter }}
+                        </span>
+                        <span class="question-marks">
+                            {{ question.marks }} mark{{ question.marks|pluralize }}
+                        </span>
+                    </div>
+
+                    <h2>{{ question.text }}</h2>
+
+                    <div class="answer-options">
+                        {% for option in question.options.all %}
+                        <label class="answer-option">
+                            <input
+                                type="radio"
+                                name="question_{{ question.id }}"
+                                value="{{ option.id }}"
+                            >
+                            <span class="option-letter">
+                                {{ forloop.counter|add:"64"|stringformat:"c" }}
+                            </span>
+                            <span class="option-text">{{ option.text }}</span>
+                            <span class="option-radio"></span>
+                        </label>
+                        {% empty %}
+                        <p class="no-options">No options are available for this question.</p>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endfor %}
+            </main>
+
+            <aside class="exam-sidebar">
+                <div class="sidebar-card">
+                    <h3>Exam overview</h3>
+
+                    <div class="overview-row">
+                        <span>Total questions</span>
+                        <strong>{{ questions|length }}</strong>
+                    </div>
+
+                    <div class="overview-row">
+                        <span>Total marks</span>
+                        <strong>{{ quiz.total_marks }}</strong>
+                    </div>
+
+                    <div class="overview-row">
+                        <span>Duration</span>
+                        <strong>{{ quiz.duration_minutes }} min</strong>
+                    </div>
+
+                    <div class="sidebar-divider"></div>
+
+                    <p class="sidebar-tip">
+                        Tip: You can change your selected answer before submitting.
+                    </p>
+
+                    <button type="submit" class="submit-exam" id="submitButton">
+                        Submit Examination →
+                    </button>
+
+                    <p class="submit-warning">
+                        Please check your answers before submitting.
+                    </p>
+                </div>
+            </aside>
+        </div>
+    </form>
+    {% else %}
+    <div class="empty-questions">
+        <h2>No questions available</h2>
+        <p>Your teacher has not added any questions to this quiz yet.</p>
+        <a href="{% url 'quiz_list' %}" class="quiz-start">Back to Quizzes</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+(function () {
+    const form = document.getElementById("examForm");
+    if (!form) return;
+
+    const timerElement = document.getElementById("timer");
+    const timerBox = document.getElementById("timerBox");
+    const submitButton = document.getElementById("submitButton");
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+
+    const totalQuestions = {{ questions|length }};
+    const durationSeconds = {{ quiz.duration_minutes }} * 60;
+
+    // Preserve the countdown start time if the page is refreshed in this tab.
+    const storageKey = "quizmaster_start_{{ attempt.id }}";
+    let startTime = sessionStorage.getItem(storageKey);
+
+    if (!startTime) {
+        startTime = Date.now().toString();
+        sessionStorage.setItem(storageKey, startTime);
+    }
+
+    startTime = Number(startTime);
+    let submitted = false;
+
+    function updateProgress() {
+        const answered = new Set(
+            Array.from(form.querySelectorAll('input[type="radio"]:checked'))
+                .map(input => input.name)
+        ).size;
+
+        progressText.textContent =
+            answered + " of " + totalQuestions + " answered";
+
+        progressFill.style.width = totalQuestions
+            ? (answered / totalQuestions * 100) + "%"
+            : "0%";
+    }
+
+    form.addEventListener("change", updateProgress);
+    updateProgress();
+
+    function submitExam() {
+        if (submitted) return;
+        submitted = true;
+        sessionStorage.removeItem(storageKey);
+
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = "Submitting...";
+        }
+
+        form.submit();
+    }
+
+    function updateTimer() {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remaining = Math.max(0, durationSeconds - elapsed);
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+
+        timerElement.textContent =
+            String(minutes).padStart(2, "0") + ":" +
+            String(seconds).padStart(2, "0");
+
+        if (remaining <= 60) {
+            timerBox.classList.add("timer-warning");
+        }
+
+        if (remaining <= 0) {
+            timerElement.textContent = "00:00";
+            submitExam();
+            return;
+        }
+
+        setTimeout(updateTimer, 1000);
+    }
+
+    form.addEventListener("submit", function (event) {
+        if (submitted) return;
+
+        event.preventDefault();
+
+        const confirmed = window.confirm(
+            "Are you sure you want to submit your examination?"
+        );
+
+        if (confirmed) {
+            submitExam();
+        }
+    });
+
+    updateTimer();
+})();
+</script>
+{% endblock %}

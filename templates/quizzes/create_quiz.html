@@ -1,0 +1,315 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Quiz | QuizMaster{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/teacher.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/create_quiz.css' %}?v=3">
+{% endblock %}
+
+{% block content %}
+<section class="teacher-page create-quiz-page">
+  <div class="teacher-container">
+
+    <header class="create-quiz-heading">
+      <div>
+        <span class="teacher-eyebrow">QUIZMASTER · QUIZ BUILDER</span>
+        <h1>Create a <span>New Quiz</span></h1>
+        <p class="teacher-subtitle">
+          Add MCQ questions, select correct answers, and publish your quiz.
+        </p>
+      </div>
+      <a href="{% url 'teacher_dashboard' %}" class="teacher-btn">
+        ← Back to Dashboard
+      </a>
+    </header>
+
+    {% if messages %}
+      <div class="create-messages">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" id="quizForm">
+      {% csrf_token %}
+
+      <section class="builder-panel">
+        <div class="builder-panel-heading">
+          <div class="builder-heading-icon">✦</div>
+          <div>
+            <h2>Quiz Details</h2>
+            <p>Enter the quiz information.</p>
+          </div>
+        </div>
+
+        <div class="builder-fields">
+          <div class="builder-field builder-field-full">
+            <label for="title">Quiz Title <span>*</span></label>
+            <input id="title" name="title" type="text"
+                   maxlength="200" required
+                   placeholder="Example: Python Fundamentals">
+          </div>
+
+          <div class="builder-field builder-field-full">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3"
+                      placeholder="Describe this quiz..."></textarea>
+          </div>
+
+          <div class="builder-field">
+            <label for="duration">Duration (minutes) <span>*</span></label>
+            <input id="duration" name="duration_minutes"
+                   type="number" min="1" max="600"
+                   value="10" required>
+          </div>
+        </div>
+      </section>
+
+      <div class="questions-heading">
+        <div>
+          <span class="teacher-eyebrow">ASSESSMENT CONTENT</span>
+          <h2>Questions & Answers</h2>
+          <p>Each question must have at least two options and one correct answer.</p>
+        </div>
+        <div class="question-counter">
+          <strong id="questionCountLabel">1</strong>
+          <span>questions</span>
+        </div>
+      </div>
+
+      <div id="questionsContainer"></div>
+      <input type="hidden" name="question_count" id="questionCount" value="1">
+
+      <button type="button" id="addQuestionBtn" class="add-question-btn">
+        <span>＋</span> Add Another Question
+      </button>
+
+      <section class="publish-panel">
+        <div class="publish-copy">
+          <div class="publish-icon">🚀</div>
+          <div>
+            <h2>Finish Your Quiz</h2>
+            <p>Save a draft or publish it for students.</p>
+          </div>
+        </div>
+
+        <div class="publish-actions">
+          <button type="submit" name="publish" value="no"
+                  class="teacher-btn">
+            Save as Draft
+          </button>
+          <button type="submit" name="publish" value="yes"
+                  class="teacher-btn teacher-btn-primary">
+            Publish Quiz →
+          </button>
+        </div>
+      </section>
+    </form>
+  </div>
+</section>
+
+<script>
+(() => {
+  const container = document.getElementById("questionsContainer");
+  const countInput = document.getElementById("questionCount");
+  const countLabel = document.getElementById("questionCountLabel");
+  const form = document.getElementById("quizForm");
+
+  function updateNames() {
+    const cards = [...container.querySelectorAll(".question-card")];
+
+    cards.forEach((card, qi) => {
+      card.querySelector(".question-number").textContent =
+        "QUESTION " + String(qi + 1).padStart(2, "0");
+
+      card.querySelector(".question-text").name = `question_${qi}`;
+      card.querySelector(".question-marks").name = `marks_${qi}`;
+
+      const rows = [...card.querySelectorAll(".option-row")];
+
+      rows.forEach((row, oi) => {
+        row.querySelector(".option-letter").textContent =
+          String.fromCharCode(65 + oi);
+
+        row.querySelector(".option-text").name = `option_${qi}_${oi}`;
+
+        const radio = row.querySelector(".correct-radio");
+        radio.name = `correct_${qi}`;
+        radio.value = oi;
+
+        row.querySelector(".correct-label").textContent =
+          radio.checked ? "Correct answer" : "Mark correct";
+      });
+
+      card.querySelector(".option-count").name = `option_count_${qi}`;
+      card.querySelector(".option-count").value = rows.length;
+    });
+
+    countInput.value = cards.length;
+    countLabel.textContent = cards.length;
+  }
+
+  function addOption(card) {
+    const options = card.querySelector(".options-container");
+
+    if (options.children.length >= 6) {
+      alert("You can add a maximum of six options per question.");
+      return;
+    }
+
+    const row = document.createElement("div");
+    row.className = "option-row";
+
+    row.innerHTML = `
+      <span class="option-letter"></span>
+      <input class="option-text" type="text" maxlength="500"
+             placeholder="Enter answer option" required>
+      <label class="correct-choice">
+        <input class="correct-radio" type="radio" required>
+        <span class="correct-label">Mark correct</span>
+      </label>
+      <button type="button" class="remove-option"
+              aria-label="Remove option">×</button>
+    `;
+
+    row.querySelector(".correct-radio").addEventListener("change", () => {
+      card.querySelectorAll(".correct-label").forEach(label => {
+        label.textContent = "Mark correct";
+      });
+      row.querySelector(".correct-label").textContent = "Correct answer";
+    });
+
+    row.querySelector(".remove-option").addEventListener("click", () => {
+      if (options.children.length <= 2) {
+        alert("Each question needs at least two options.");
+        return;
+      }
+
+      const wasCorrect = row.querySelector(".correct-radio").checked;
+      row.remove();
+
+      if (wasCorrect) {
+        const firstRadio = options.querySelector(".correct-radio");
+        firstRadio.checked = true;
+      }
+
+      updateNames();
+    });
+
+    options.appendChild(row);
+    updateNames();
+  }
+
+  function addQuestion() {
+    if (container.children.length >= 50) {
+      alert("You can add a maximum of 50 questions.");
+      return;
+    }
+
+    const card = document.createElement("article");
+    card.className = "question-card";
+
+    card.innerHTML = `
+      <div class="question-card-top">
+        <div>
+          <span class="question-number"></span>
+          <span class="question-card-subtitle">Multiple-choice question</span>
+        </div>
+        <button type="button" class="remove-question">Remove ×</button>
+      </div>
+
+      <div class="builder-field">
+        <label>Question Text <span>*</span></label>
+        <textarea class="question-text" rows="3" maxlength="2000"
+                  placeholder="Type your question here..." required></textarea>
+      </div>
+
+      <div class="question-settings">
+        <div class="builder-field marks-field">
+          <label>Marks</label>
+          <input class="question-marks" type="number" min="1" max="100"
+                 value="1" required>
+        </div>
+        <div class="question-hint">✓ Select one correct answer below.</div>
+      </div>
+
+      <div class="options-heading">
+        <h3>Answer Options</h3>
+        <span>Choose the correct option using the radio button.</span>
+      </div>
+
+      <div class="options-container"></div>
+      <input type="hidden" class="option-count" value="0">
+      <button type="button" class="add-option-btn">＋ Add Option</button>
+    `;
+
+    card.querySelector(".remove-question").addEventListener("click", () => {
+      if (container.children.length <= 1) {
+        alert("A quiz must contain at least one question.");
+        return;
+      }
+
+      card.remove();
+      updateNames();
+    });
+
+    card.querySelector(".add-option-btn").addEventListener("click", () => {
+      addOption(card);
+    });
+
+    container.appendChild(card);
+    addOption(card);
+    addOption(card);
+    updateNames();
+  }
+
+  form.addEventListener("submit", event => {
+    updateNames();
+
+    const cards = [...container.querySelectorAll(".question-card")];
+
+    if (cards.length === 0) {
+      event.preventDefault();
+      alert("Add at least one question.");
+      return;
+    }
+
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+
+      if (!card.querySelector(".question-text").value.trim()) {
+        event.preventDefault();
+        alert(`Enter the text for question ${i + 1}.`);
+        return;
+      }
+
+      const options = [...card.querySelectorAll(".option-row")];
+
+      if (
+        options.length < 2 ||
+        options.some(row => !row.querySelector(".option-text").value.trim())
+      ) {
+        event.preventDefault();
+        alert(`Complete the answer options for question ${i + 1}.`);
+        return;
+      }
+
+      if (!card.querySelector(".correct-radio:checked")) {
+        event.preventDefault();
+        alert(`Select the correct answer for question ${i + 1}.`);
+        return;
+      }
+    }
+  });
+
+  document.getElementById("addQuestionBtn")
+    .addEventListener("click", addQuestion);
+
+  addQuestion();
+})();
+</script>
+{% endblock %}

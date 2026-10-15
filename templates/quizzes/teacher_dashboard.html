@@ -1,0 +1,253 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Teacher Dashboard | QuizMaster{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/teacher.css' %}">
+
+<div class="teacher-dashboard">
+
+    <header class="teacher-welcome">
+        <div>
+            <span class="teacher-eyebrow">QUIZMASTER • TEACHER PORTAL</span>
+            <h1>Teacher Dashboard</h1>
+            <p>Manage your quizzes and monitor student performance.</p>
+        </div>
+
+        <a href="{% url 'create_quiz' %}" class="teacher-primary-button">
+            + Create Quiz
+        </a>
+    </header>
+
+    <section class="teacher-stats">
+        <article class="teacher-stat-card">
+            <div class="teacher-stat-icon">📝</div>
+            <div>
+                <span>Total Quizzes</span>
+                <strong>{{ total_quizzes }}</strong>
+                <small>Created quizzes</small>
+            </div>
+        </article>
+
+        <article class="teacher-stat-card">
+            <div class="teacher-stat-icon">🚀</div>
+            <div>
+                <span>Published</span>
+                <strong>{{ published_quizzes }}</strong>
+                <small>Available to students</small>
+            </div>
+        </article>
+
+        <article class="teacher-stat-card">
+            <div class="teacher-stat-icon">📊</div>
+            <div>
+                <span>Submissions</span>
+                <strong>{{ total_attempts }}</strong>
+                <small>Completed attempts</small>
+            </div>
+        </article>
+
+        <article class="teacher-stat-card">
+            <div class="teacher-stat-icon">👥</div>
+            <div>
+                <span>Students</span>
+                <strong>{{ total_students }}</strong>
+                <small>Unique participants</small>
+            </div>
+        </article>
+    </section>
+
+    <section class="teacher-panel">
+        <div class="teacher-section-heading">
+            <div>
+                <h2>Manage Your Quizzes</h2>
+                <p>Review your quizzes and their publication status.</p>
+            </div>
+
+            <a href="{% url 'create_quiz' %}" class="teacher-text-link">
+                + Create quiz
+            </a>
+        </div>
+
+        {% if quizzes %}
+            <div class="teacher-table-wrap">
+                <table class="teacher-table">
+                    <thead>
+                        <tr>
+                            <th>QUIZ</th>
+                            <th>DURATION</th>
+                            <th>QUESTIONS</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for quiz in quizzes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ quiz.title }}</strong>
+                                    <small>{{ quiz.description|default:"No description provided." }}</small>
+                                </td>
+
+                                <td>{{ quiz.duration_minutes }} min</td>
+
+                                <td>{{ quiz.questions.count }}</td>
+
+                                <td>
+                                    {% if quiz.is_published %}
+                                        <span class="teacher-status published">
+                                            <span></span> Published
+                                        </span>
+                                    {% else %}
+                                        <span class="teacher-status draft">
+                                            <span></span> Draft
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="teacher-empty">
+                <div>📝</div>
+                <h3>No quizzes created yet</h3>
+                <p>Create your first quiz to start assessing students.</p>
+                <a href="{% url 'create_quiz' %}" class="teacher-primary-button">
+                    Create Your First Quiz
+                </a>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="teacher-panel student-performance">
+        <div class="teacher-section-heading">
+            <div>
+                <h2>📈 Student Performance</h2>
+                <p>Live statistics from completed quiz attempts.</p>
+            </div>
+
+            <span class="teacher-live-badge">
+                <span></span> DATABASE STATS
+            </span>
+        </div>
+
+        <div class="performance-stats">
+            <article class="performance-stat">
+                <span>Total Submissions</span>
+                <strong>{{ total_attempts }}</strong>
+                <small>Completed quizzes</small>
+            </article>
+
+            <article class="performance-stat">
+                <span>Unique Students</span>
+                <strong>{{ total_students }}</strong>
+                <small>Students who submitted</small>
+            </article>
+
+            <article class="performance-stat">
+                <span>Average Score</span>
+                <strong>{{ average_percentage|floatformat:1 }}%</strong>
+                <small>Across completed attempts</small>
+            </article>
+        </div>
+
+        <div class="performance-top">
+            <div class="performance-top-icon">🏆</div>
+
+            <div>
+                <span class="performance-label">TOP PERFORMANCE</span>
+
+                {% if top_attempt %}
+                    <h3>{{ top_attempt.student.username }}</h3>
+                    <p>
+                        Scored <strong>{{ top_attempt.score }}/{{ top_attempt.total_marks }}</strong>
+                        in <strong>{{ top_attempt.quiz.title }}</strong>.
+                    </p>
+                    <span class="performance-top-score">
+                        {{ top_attempt.percentage|floatformat:1 }}%
+                    </span>
+                {% else %}
+                    <h3>Waiting for the first submission</h3>
+                    <p>Student performance will appear here when a quiz is completed.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="teacher-section-heading recent-heading">
+            <div>
+                <h2>Recent Submissions</h2>
+                <p>The latest 10 completed quiz attempts.</p>
+            </div>
+        </div>
+
+        {% if recent_attempts %}
+            <div class="teacher-table-wrap">
+                <table class="teacher-table performance-table">
+                    <thead>
+                        <tr>
+                            <th>STUDENT</th>
+                            <th>QUIZ</th>
+                            <th>SCORE</th>
+                            <th>PERCENTAGE</th>
+                            <th>SUBMITTED</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for attempt in recent_attempts %}
+                            <tr>
+                                <td>
+                                    <div class="performance-student">
+                                        <span class="performance-avatar">
+                                            {{ attempt.student.username|first|upper }}
+                                        </span>
+                                        <strong>{{ attempt.student.username }}</strong>
+                                    </div>
+                                </td>
+
+                                <td>{{ attempt.quiz.title }}</td>
+
+                                <td>
+                                    <strong>{{ attempt.score }}/{{ attempt.total_marks }}</strong>
+                                </td>
+
+                                <td>
+                                    <span class="performance-percentage">
+                                        {{ attempt.percentage|floatformat:1 }}%
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {{ attempt.submitted_at|date:"d M Y, h:i A" }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="teacher-empty performance-no-data">
+                <div>📊</div>
+                <h3>No completed submissions yet</h3>
+                <p>Once a student submits a quiz, their score will appear here automatically.</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="teacher-tip">
+        <div class="teacher-tip-icon">💡</div>
+        <div>
+            <h3>Teaching Tip</h3>
+            <p>
+                Review every question and correct answer before publishing.
+                Use clear options and a suitable time limit.
+            </p>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

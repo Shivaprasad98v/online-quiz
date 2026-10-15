@@ -1,0 +1,82 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Choose Login | QuizMaster{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+
+    <div class="auth-heading">
+        <span class="eyebrow">WELCOME TO QUIZMASTER</span>
+        <h1>Your next chapter <span>starts here.</span></h1>
+        <p>Choose how you want to enter your learning space.</p>
+    </div>
+
+    <div class="role-grid">
+
+        <article class="role-card">
+            <div class="role-icon">🎓</div>
+            <span class="role-label">FOR LEARNERS</span>
+            <h2>Student</h2>
+
+            <p>
+                Take quizzes, track your scores, review past attempts,
+                and compete on the leaderboard.
+            </p>
+
+            <ul>
+                <li>✓ Take published quizzes</li>
+                <li>✓ View scores and progress</li>
+                <li>✓ Explore the leaderboard</li>
+            </ul>
+
+            <a class="role-button student-button"
+               href="{% url 'student_login' %}">
+                Student login <span>→</span>
+            </a>
+
+            <p class="role-footnote">
+                New here?
+                <a href="{% url 'register' %}">Create a student account</a>
+            </p>
+        </article>
+
+        <article class="role-card teacher-role">
+            <div class="role-icon">🧑‍🏫</div>
+            <span class="role-label">FOR EDUCATORS</span>
+            <h2>Teacher</h2>
+
+            <p>
+                Create assessments, publish quizzes, and monitor
+                how your students perform.
+            </p>
+
+            <ul>
+                <li>✓ Create and publish quizzes</li>
+                <li>✓ Manage questions and answers</li>
+                <li>✓ Review student results</li>
+            </ul>
+
+            <a class="role-button teacher-button"
+               href="{% url 'teacher_login' %}">
+                Teacher login <span>→</span>
+            </a>
+
+            <p class="role-footnote">
+                Teacher access is provided by the administrator.
+            </p>
+        </article>
+
+    </div>
+
+    <p class="auth-back">
+        <a href="{% url 'quiz_list' %}">← Back to QuizMaster homepage</a>
+    </p>
+
+</section>
+{% endblock %}

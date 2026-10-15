@@ -1,0 +1,94 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b18">
+    <title>{% block title %}QuizMaster{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=10">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar">
+            <a href="{% url 'quiz_list' %}" class="brand">
+                <span class="brand-icon">Q</span>
+                <span>Quiz<span class="brand-accent">Master</span></span>
+            </a>
+
+            <button class="menu-toggle" id="menuToggle"
+                    type="button" aria-label="Toggle navigation"
+                    aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+
+            <div class="nav-links" id="navLinks">
+                <a href="{% url 'quiz_list' %}" class="nav-link">Quizzes</a>
+
+                {% if user.is_authenticated %}
+                    {% if user.is_superuser or user.groups.all %}
+                        <a href="{% url 'attempt_history' %}" class="nav-link">My Results</a>
+                        <a href="{% url 'leaderboard' %}" class="nav-link">Leaderboard</a>
+                    {% else %}
+                        <a href="{% url 'attempt_history' %}" class="nav-link">My Results</a>
+                        <a href="{% url 'leaderboard' %}" class="nav-link">Leaderboard</a>
+                    {% endif %}
+
+                    {% if user.is_superuser or user.groups.all %}
+                        <a href="{% url 'teacher_dashboard' %}" class="nav-link">Teacher</a>
+                    {% endif %}
+
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin:index' %}" class="nav-link">Admin</a>
+                    {% endif %}
+
+                    <span class="user-pill">
+                        <span class="user-avatar">{{ user.username|first|upper }}</span>
+                        {{ user.username }}
+                    </span>
+
+                    <form action="{% url 'logout' %}" method="post" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-button">Log out ↗</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'portal' %}" class="nav-link">Login</a>
+                    <a href="{% url 'register' %}" class="nav-register">Get started →</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <main class="page-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <a href="{% url 'quiz_list' %}" class="footer-brand">QuizMaster</a>
+        <p>Learn at your pace. Grow with every challenge.</p>
+        <span>Online Quiz and Examination System · Built with Django</span>
+    </footer>
+
+    <script>
+        const menuToggle = document.getElementById("menuToggle");
+        const navLinks = document.getElementById("navLinks");
+
+        menuToggle.addEventListener("click", function () {
+            const isOpen = navLinks.classList.toggle("nav-open");
+            menuToggle.setAttribute("aria-expanded", String(isOpen));
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

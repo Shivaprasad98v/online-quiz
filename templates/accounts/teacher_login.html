@@ -1,0 +1,44 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Teacher Login | QuizVerse{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <div class="auth-card teacher-auth">
+        <a class="back-link" href="{% url 'portal' %}">← All portals</a>
+        <div class="auth-icon teacher-icon">✦</div>
+        <span class="eyebrow">TEACHER PORTAL</span>
+        <h1>Welcome, Educator.</h1>
+        <p class="auth-description">Sign in to manage your examinations.</p>
+
+        <form method="post" class="modern-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            {% for field in form %}
+                <div class="field-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            {% if form.non_field_errors %}
+                <div class="form-error">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <button type="submit" class="gradient-button teacher-button">
+                Sign in as Teacher →
+            </button>
+        </form>
+
+        <p class="auth-footer">
+            Teacher access is provided by your administrator.
+        </p>
+    </div>
+</div>
+{% endblock %}
+

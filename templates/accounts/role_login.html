@@ -1,0 +1,81 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ role_title }} Login | QuizMaster{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+
+    <div class="auth-form-card">
+
+        <div class="role-icon">
+            {% if role == "teacher" %}🧑‍🏫{% else %}🎓{% endif %}
+        </div>
+
+        <span class="eyebrow">
+            {% if role == "teacher" %}
+                EDUCATOR ACCESS
+            {% else %}
+                STUDENT ACCESS
+            {% endif %}
+        </span>
+
+        <h2>Welcome back.</h2>
+        <p>
+            Sign in to continue to your {{ role_title|lower }} dashboard.
+        </p>
+
+        {% if form.non_field_errors %}
+            <div class="auth-errors">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <p>
+                <label for="{{ form.username.id_for_label }}">Username</label>
+                {{ form.username }}
+                {% for error in form.username.errors %}
+                    <span class="auth-errors">{{ error }}</span>
+                {% endfor %}
+            </p>
+
+            <p>
+                <label for="{{ form.password.id_for_label }}">Password</label>
+                {{ form.password }}
+                {% for error in form.password.errors %}
+                    <span class="auth-errors">{{ error }}</span>
+                {% endfor %}
+            </p>
+
+            <button type="submit" class="auth-submit">
+                Login as {{ role_title }} →
+            </button>
+        </form>
+
+        {% if role == "student" %}
+            <p>
+                Don't have an account?
+                <a href="{% url 'register' %}">Register as a student</a>
+            </p>
+        {% else %}
+            <p>Teacher accounts must be approved by an administrator.</p>
+        {% endif %}
+
+        <p>
+            <a href="{% url 'portal' %}">← Choose another login type</a>
+        </p>
+
+    </div>
+
+</section>
+{% endblock %}

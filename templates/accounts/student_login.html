@@ -1,0 +1,44 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Student Login | QuizVerse{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <div class="auth-card">
+        <a class="back-link" href="{% url 'portal' %}">← All portals</a>
+        <div class="auth-icon student-icon">🎓</div>
+        <span class="eyebrow">STUDENT PORTAL</span>
+        <h1>Welcome back!</h1>
+        <p class="auth-description">Sign in to continue your learning journey.</p>
+
+        <form method="post" class="modern-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            {% for field in form %}
+                <div class="field-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            {% if form.non_field_errors %}
+                <div class="form-error">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <button type="submit" class="gradient-button">
+                Sign in as Student →
+            </button>
+        </form>
+
+        <p class="auth-footer">
+            Don't have an account?
+            <a href="{% url 'register' %}">Register here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

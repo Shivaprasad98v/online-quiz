@@ -1,0 +1,289 @@
+
+{% extends "base.html" %}
+
+{% block title %}Explore Quizzes | QuizMaster{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+    <!-- HERO SECTION -->
+    <section class="hero-panel">
+        <div class="hero-content">
+            <div class="eyebrow"><span class="eyebrow-dot"></span> YOUR PERSONAL LEARNING SPACE</div>
+
+            <h1>Knowledge is power.<br>
+                <span>Make it yours.</span>
+            </h1>
+
+            <p>
+                Discover your strengths, challenge your mind, and improve
+                your skills one quiz at a time.
+            </p>
+
+            <div class="hero-actions">
+                <a href="#quiz-section" class="primary-button">
+                    Explore quizzes <span>→</span>
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'attempt_history' %}" class="secondary-button">
+                        View my results
+                    </a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="secondary-button">
+                        Create an account
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="hero-benefits">
+                <span>✓ Instant scoring</span>
+                <span>✓ Timed challenges</span>
+                <span>✓ Progress tracking</span>
+            </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+            <div class="visual-glow"></div>
+            <div class="visual-ring ring-one"></div>
+            <div class="visual-ring ring-two"></div>
+
+            <div class="floating-label floating-label-top">
+                <span class="label-icon">✦</span>
+                <span><strong>Stay curious</strong><small>Learn something new</small></span>
+            </div>
+
+            <div class="quiz-preview">
+                <div class="preview-header">
+                    <span class="preview-icon">🧠</span>
+                    <span class="preview-tag">DAILY CHALLENGE</span>
+                </div>
+                <p class="preview-question">Ready to test your knowledge?</p>
+                <div class="preview-option correct"><span>✓</span> Absolutely!</div>
+                <div class="preview-option"><span>○</span> Let's find out</div>
+                <div class="preview-progress"><span></span></div>
+                <small class="preview-caption">Every question is a new opportunity.</small>
+            </div>
+
+            <div class="floating-label floating-label-bottom">
+                <span class="trophy-icon">🏆</span>
+                <span><strong>Level up</strong><small>One quiz at a time</small></span>
+            </div>
+        </div>
+
+        <div class="hero-decoration decoration-one"></div>
+        <div class="hero-decoration decoration-two"></div>
+    </section>
+
+    <!-- DASHBOARD STATS -->
+    <section class="stats-grid">
+        <article class="stat-card">
+            <div class="stat-icon icon-purple">▤</div>
+            <div class="stat-info">
+                <span>Available quizzes</span>
+                <strong>{{ quizzes|length }}</strong>
+                <small>Ready to explore</small>
+            </div>
+            <span class="stat-decoration">01</span>
+        </article>
+
+        <article class="stat-card">
+            <div class="stat-icon icon-cyan">◎</div>
+            <div class="stat-info">
+                <span>Learning mode</span>
+                <strong>Practice</strong>
+                <small>Grow at your pace</small>
+            </div>
+            <span class="stat-decoration">02</span>
+        </article>
+
+        <article class="stat-card">
+            <div class="stat-icon icon-orange">♛</div>
+            <div class="stat-info">
+                <span>Your next milestone</span>
+                <strong>Be your best</strong>
+                <small>Every attempt counts</small>
+            </div>
+            <span class="stat-decoration">03</span>
+        </article>
+    </section>
+
+    <!-- QUIZ EXPLORER -->
+    <section class="quiz-section" id="quiz-section">
+        <div class="section-heading">
+            <div>
+                <div class="eyebrow">PICK YOUR NEXT CHALLENGE</div>
+                <h2>Explore <span>quizzes.</span></h2>
+                <p>Find a topic, take the challenge, and see what you can do.</p>
+            </div>
+
+            <div class="available-count">
+                <span class="count-dot"></span>
+                <span>{{ quizzes|length }} available</span>
+            </div>
+        </div>
+
+        <div class="quiz-toolbar">
+            <label class="search-box">
+                <span class="search-icon">⌕</span>
+                <input id="quizSearch" type="search"
+                       placeholder="Search by quiz title..."
+                       aria-label="Search quizzes">
+                <kbd>⌕</kbd>
+            </label>
+
+            <div class="filter-buttons" aria-label="Filter quizzes">
+                <button type="button" class="filter-btn active" data-filter="all">All quizzes</button>
+                <button type="button" class="filter-btn" data-filter="quick">Quick</button>
+                <button type="button" class="filter-btn" data-filter="extended">Extended</button>
+            </div>
+        </div>
+
+        <div class="quiz-grid" id="quizGrid">
+            {% for quiz in quizzes %}
+                <article class="quiz-card"
+                         data-title="{{ quiz.title|lower }}"
+                         data-duration="{{ quiz.duration_minutes }}">
+
+                    <div class="quiz-card-top">
+                        <div class="quiz-art quiz-art-{{ forloop.counter0|divisibleby:4 }}">
+                            {% cycle "💻" "🧩" "🚀" "📘" "⚡" %}
+                        </div>
+                        <span class="quiz-badge">
+                            {% if quiz.duration_minutes <= 10 %}
+                                <span class="badge-dot"></span> Quick challenge
+                            {% else %}
+                                <span class="badge-dot"></span> Deep practice
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <h3>{{ quiz.title }}</h3>
+
+                    <p class="quiz-description">
+                        {{ quiz.description|default:"Challenge yourself, test your understanding, and learn something new."|truncatewords:22 }}
+                    </p>
+
+                    <div class="quiz-meta">
+                        <span><span class="meta-symbol">◷</span> {{ quiz.duration_minutes }} min</span>
+                        <span><span class="meta-symbol">▤</span> {{ quiz.questions.count }} questions</span>
+                    </div>
+
+                    <a href="{% url 'quiz_detail' quiz.id %}" class="quiz-action">
+                        <span>View challenge</span>
+                        <span class="action-arrow">→</span>
+                    </a>
+                </article>
+            {% empty %}
+                <div class="empty-state">
+                    <div class="empty-art">
+                        <span class="empty-sparkle sparkle-one">✦</span>
+                        <span class="empty-book">📚</span>
+                        <span class="empty-sparkle sparkle-two">✧</span>
+                    </div>
+
+                    <div class="eyebrow">A NEW CHALLENGE IS COMING</div>
+                    <h3>Your learning journey starts here.</h3>
+                    <p>
+                        There aren't any published quizzes yet. Once a teacher
+                        publishes a quiz, it will appear here ready for you.
+                    </p>
+
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin:index' %}" class="primary-button">
+                            Manage quizzes <span>→</span>
+                        </a>
+                    {% else %}
+                        <a href="#quiz-section" class="secondary-button"
+                           onclick="document.getElementById('quizSearch').focus(); return false;">
+                            Explore this page
+                        </a>
+                    {% endif %}
+
+                    <div class="empty-note">
+                        <span>✦</span> New topics. New challenges. New opportunities.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div id="noSearchResults" class="no-search-results" hidden>
+            <span>🔎</span>
+            <h3>No matching quizzes</h3>
+            <p>Try another search term or choose a different filter.</p>
+            <button type="button" id="clearSearch" class="secondary-button">
+                Clear search
+            </button>
+        </div>
+    </section>
+
+    <!-- BOTTOM CALL TO ACTION -->
+    <section class="bottom-banner">
+        <div class="banner-icon">✦</div>
+        <div>
+            <h3>Small steps. Big progress.</h3>
+            <p>Every question you answer is a step towards learning more.</p>
+        </div>
+        <a href="#quiz-section" class="banner-link">Find your next quiz →</a>
+    </section>
+</div>
+
+<script>
+(function () {
+    const search = document.getElementById("quizSearch");
+    const cards = Array.from(document.querySelectorAll(".quiz-card"));
+    const buttons = document.querySelectorAll(".filter-btn");
+    const noResults = document.getElementById("noSearchResults");
+    const clearButton = document.getElementById("clearSearch");
+
+    let activeFilter = "all";
+
+    function applyFilters() {
+        const query = search.value.trim().toLowerCase();
+        let visible = 0;
+
+        cards.forEach(card => {
+            const title = card.dataset.title || "";
+            const duration = Number(card.dataset.duration || 0);
+
+            const titleMatches = title.includes(query);
+            const durationMatches =
+                activeFilter === "all" ||
+                (activeFilter === "quick" && duration <= 10) ||
+                (activeFilter === "extended" && duration > 10);
+
+            const show = titleMatches && durationMatches;
+            card.hidden = !show;
+
+            if (show) visible++;
+        });
+
+        noResults.hidden = cards.length === 0 || visible > 0;
+    }
+
+    search.addEventListener("input", applyFilters);
+
+    buttons.forEach(button => {
+        button.addEventListener("click", () => {
+            activeFilter = button.dataset.filter;
+
+            buttons.forEach(item => item.classList.remove("active"));
+            button.classList.add("active");
+
+            applyFilters();
+        });
+    });
+
+    clearButton.addEventListener("click", () => {
+        search.value = "";
+        activeFilter = "all";
+
+        buttons.forEach(button => {
+            button.classList.toggle("active", button.dataset.filter === "all");
+        });
+
+        applyFilters();
+        search.focus();
+    });
+})();
+</script>
+{% endblock %}

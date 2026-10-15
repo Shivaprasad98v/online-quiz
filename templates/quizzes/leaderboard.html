@@ -1,0 +1,140 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Leaderboard | QuizMaster{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/quiz_pages.css' %}">
+
+<div class="leaderboard-page">
+
+    <header class="leaderboard-header">
+        <div>
+            <span class="result-eyebrow">QUIZMASTER RANKINGS</span>
+            <h1>Leaderboard</h1>
+            <p>Celebrate achievement and see how learners perform.</p>
+        </div>
+
+        <a href="{% url 'quiz_list' %}" class="leaderboard-action">
+            Take a Quiz →
+        </a>
+    </header>
+
+    <section class="leaderboard-hero">
+        <div class="leaderboard-hero-text">
+            <span class="leaderboard-pill">TOP PERFORMERS</span>
+            <h2>Every challenge counts.</h2>
+            <p>
+                Discover the highest-scoring completed quiz attempts.
+                Keep practising and climb the rankings.
+            </p>
+        </div>
+
+        <div class="leaderboard-trophy">🏆</div>
+    </section>
+
+    <section class="leaderboard-panel">
+        <div class="leaderboard-panel-heading">
+            <div>
+                <h2>Top 20 Results</h2>
+                <p>Ranked by score percentage, then marks earned.</p>
+            </div>
+
+            <span class="leaderboard-count">
+                {{ attempts|length }} results
+            </span>
+        </div>
+
+        {% if attempts %}
+        <div class="leaderboard-table-wrap">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>RANK</th>
+                        <th>STUDENT</th>
+                        <th>QUIZ</th>
+                        <th>SCORE</th>
+                        <th>PERCENTAGE</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for attempt in attempts %}
+                    <tr>
+                        <td>
+                            <span class="rank-number
+                                {% if forloop.counter == 1 %}rank-gold
+                                {% elif forloop.counter == 2 %}rank-silver
+                                {% elif forloop.counter == 3 %}rank-bronze
+                                {% endif %}">
+                                {% if forloop.counter == 1 %}
+                                    🥇
+                                {% elif forloop.counter == 2 %}
+                                    🥈
+                                {% elif forloop.counter == 3 %}
+                                    🥉
+                                {% else %}
+                                    {{ forloop.counter }}
+                                {% endif %}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="leaderboard-student">
+                                <span class="student-avatar">
+                                    {{ attempt.student.username|first|upper }}
+                                </span>
+                                <div>
+                                    <strong>{{ attempt.student.username }}</strong>
+                                    <small>Quiz participant</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="leaderboard-quiz-title">
+                                {{ attempt.quiz.title }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <strong class="leaderboard-score">
+                                {{ attempt.score }}
+                                <span>/ {{ attempt.total_marks }}</span>
+                            </strong>
+                        </td>
+
+                        <td>
+                            <div class="leaderboard-percentage">
+                                <strong>
+                                    {{ attempt.percentage|floatformat:1 }}%
+                                </strong>
+                                <div class="leaderboard-progress">
+                                    <span style="width: {{ attempt.percentage }}%"></span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="leaderboard-empty">
+            <div class="leaderboard-empty-icon">🏆</div>
+            <h3>No rankings yet</h3>
+            <p>Complete a quiz to become one of the first learners on the leaderboard.</p>
+            <a href="{% url 'quiz_list' %}" class="leaderboard-action">
+                Explore Quizzes →
+            </a>
+        </div>
+        {% endif %}
+    </section>
+
+    <p class="leaderboard-footer-note">
+        Learn at your pace. Grow with every challenge.
+    </p>
+
+</div>
+{% endblock %}

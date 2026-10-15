@@ -1,0 +1,126 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Exam Results | QuizMaster{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/quiz_pages.css' %}">
+
+<div class="result-page">
+
+    <div class="result-success">
+        <span class="success-icon">✓</span>
+        <div>
+            <strong>Examination submitted successfully!</strong>
+            <p>Your answers have been evaluated. Here is your result.</p>
+        </div>
+    </div>
+
+    <section class="result-hero">
+        <div class="result-hero-content">
+            <span class="result-eyebrow">QUIZMASTER · EXAMINATION REPORT</span>
+            <h1>Examination Completed</h1>
+            <p class="result-quiz-title">{{ attempt.quiz.title }}</p>
+
+            <div class="result-status">
+                <span class="status-dot"></span>
+                {{ attempt.status|title }}
+            </div>
+        </div>
+
+        <div class="score-circle"
+             style="--score: {{ attempt.percentage|default:0 }}%">
+            <div class="score-circle-inner">
+                <strong>{{ attempt.percentage|floatformat:1 }}%</strong>
+                <span>Your Score</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="result-stats">
+        <div class="result-stat">
+            <span class="result-stat-icon">🏆</span>
+            <span class="result-stat-label">MARKS OBTAINED</span>
+            <strong>{{ attempt.score }} <small>/ {{ attempt.total_marks }}</small></strong>
+        </div>
+
+        <div class="result-stat">
+            <span class="result-stat-icon">☷</span>
+            <span class="result-stat-label">QUESTIONS</span>
+            <strong>{{ answers|length }}</strong>
+        </div>
+
+        <div class="result-stat">
+            <span class="result-stat-icon">◷</span>
+            <span class="result-stat-label">SUBMITTED ON</span>
+            <strong class="result-date">
+                {% if attempt.submitted_at %}
+                    {{ attempt.submitted_at|date:"d M Y" }}
+                    <small>{{ attempt.submitted_at|date:"h:i A" }}</small>
+                {% else %}
+                    Not submitted
+                {% endif %}
+            </strong>
+        </div>
+    </section>
+
+    <div class="result-actions">
+        <a href="{% url 'attempt_history' %}" class="result-button result-button-primary">
+            View My History →
+        </a>
+        <a href="{% url 'quiz_list' %}" class="result-button result-button-secondary">
+            Explore More Quizzes
+        </a>
+    </div>
+
+    <section class="answer-summary">
+        <div class="summary-heading">
+            <div>
+                <span class="result-eyebrow">DETAILED REVIEW</span>
+                <h2>Answer Summary</h2>
+                <p>Review your selected answers and the marks awarded.</p>
+            </div>
+            <span class="summary-count">{{ answers|length }} Questions</span>
+        </div>
+
+        {% for answer in answers %}
+        <article class="answer-review">
+            <div class="answer-review-top">
+                <span class="review-question-number">
+                    QUESTION {{ forloop.counter }}
+                </span>
+
+                {% if answer.marks_awarded > 0 %}
+                    <span class="answer-badge answer-correct">✓ Correct</span>
+                {% else %}
+                    <span class="answer-badge answer-incorrect">✕ Incorrect / Unanswered</span>
+                {% endif %}
+            </div>
+
+            <h3>{{ answer.question.text }}</h3>
+
+            <div class="your-answer">
+                <span class="answer-label">YOUR ANSWER</span>
+                {% if answer.selected_option %}
+                    <p>{{ answer.selected_option.text }}</p>
+                {% else %}
+                    <p class="unanswered-text">You did not select an answer.</p>
+                {% endif %}
+            </div>
+
+            <div class="answer-review-footer">
+                <span>Marks awarded</span>
+                <strong>{{ answer.marks_awarded }} / {{ answer.question.marks }}</strong>
+            </div>
+        </article>
+        {% empty %}
+        <div class="result-empty">
+            <h3>No answer details available</h3>
+            <p>There are no saved answers to display for this attempt.</p>
+        </div>
+        {% endfor %}
+    </section>
+
+</div>
+{% endblock %}
